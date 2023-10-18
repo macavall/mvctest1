@@ -33,7 +33,7 @@ steps:
     appType: 'webApp'
     appName: 'webapp56app'
     package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
-    deploymentMethod: 'auto'
+    deploymentMethod: 'zipDeploy'
 
 - task: DotNetCoreCLI@2
   inputs:
