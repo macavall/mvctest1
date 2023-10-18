@@ -38,5 +38,5 @@ steps:
     azureSubscription: 'Visual Studio Enterprise(590d4409-008a-4d94-be3b-7ff931a8ef98)'
     appType: 'webApp'
     appName: 'webapp56app'
-    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    package: '$(build.artifactStagingDirectory)/**/*.zip'
     deploymentMethod: 'zipDeploy'
