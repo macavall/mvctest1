@@ -1,44 +1,95 @@
-# ASP.NET Core (.NET Framework)
-# Build and test ASP.NET Core projects targeting the full .NET Framework.
-# Add steps that publish symbols, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
 trigger:
-- master
+- master  # Define the branch to trigger the pipeline (e.g., 'main' or 'master')
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'windows-latest'  # Use a Windows agent for .NET Core applications
 
 variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
+  azureSubscription: 'Visual Studio Enterprise(590d4409-008a-4d94-be3b-7ff931a8ef98)'
+  webAppName: 'webapp56app'
   buildConfiguration: 'Release'
 
-steps:
-- task: UseDotNet@2
-  inputs:
-    version: '6.x'
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    displayName: 'Build and Publish'
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '6.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+    - script: dotnet restore
+      displayName: 'Restore dependencies'
+    - script: dotnet build --configuration $(buildConfiguration)
+      displayName: 'Build'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: drop'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'restore'
+- stage: Deploy
+  jobs:
+  - job: Deploy
+    displayName: 'Deploy to Azure Web App'
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '6.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+    - task: AzureWebApp@1
+      inputs:
+        azureSubscription: '$(azureSubscription)'
+        appType: 'webApp'
+        appName: '$(webAppName)'
+        package: '$(Pipeline.Workspace)/drop/**/*.zip'
+        deploymentMethod: 'zipDeploy'
 
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)' 
-    artifactName: 'webapp56app.zip'
-- task: AzureWebApp@1
-  inputs:
-    azureSubscription: 'Visual Studio Enterprise(590d4409-008a-4d94-be3b-7ff931a8ef98)'
-    appType: 'webApp'
-    appName: 'webapp56app'
-    package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
-    deploymentMethod: 'zipDeploy'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: publish
-    publishWebProjects: True
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: True
+# # ASP.NET Core (.NET Framework)
+# # Build and test ASP.NET Core projects targeting the full .NET Framework.
+# # Add steps that publish symbols, save build artifacts, and more:
+# # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+# trigger:
+# - master
+
+# pool:
+#   vmImage: 'windows-latest'
+
+# variables:
+#   solution: '**/*.sln'
+#   buildPlatform: 'Any CPU'
+#   buildConfiguration: 'Release'
+
+# steps:
+# - task: UseDotNet@2
+#   inputs:
+#     version: '6.x'
+
+# - task: DotNetCoreCLI@2
+#   inputs:
+#     command: 'restore'
+
+# - task: PublishPipelineArtifact@1
+#   inputs:
+#     targetPath: '$(Build.ArtifactStagingDirectory)' 
+#     artifactName: 'webapp56app.zip'
+# - task: AzureWebApp@1
+#   inputs:
+#     azureSubscription: 'Visual Studio Enterprise(590d4409-008a-4d94-be3b-7ff931a8ef98)'
+#     appType: 'webApp'
+#     appName: 'webapp56app'
+#     package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+#     deploymentMethod: 'zipDeploy'
+
+# - task: DotNetCoreCLI@2
+#   inputs:
+#     command: publish
+#     publishWebProjects: True
+#     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+#     zipAfterPublish: True
 
