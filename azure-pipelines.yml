@@ -1,34 +1,89 @@
 trigger:
-- master  # Define the branch to trigger the pipeline (e.g., 'main' or 'master')
+- master  # This pipeline will be triggered when changes are pushed to the master branch. Adjust this as needed.
+
+pr: none  # Disabling PR triggers for this example.
 
 pool:
-  vmImage: 'windows-latest'  # Use a Windows agent for .NET Core applications
+  vmImage: 'windows-latest'  # Use a Windows agent for deploying to Azure Web App.
 
 variables:
-  azureSubscription: 'Visual Studio Enterprise(590d4409-008a-4d94-be3b-7ff931a8ef98)'
-  webAppName: 'webapp56app'
-  buildConfiguration: 'Release'
+  # Define your Azure subscription and App Service name as variables.
+  azureSubscription: 'Visual Studio Enterprise(590d4409-008a-4d94-be3b-7ff931a8ef98)'  # Set this to your Azure subscription name or service connection.
+  appName: 'webapp56app'  # Set this to the name of your Azure Web App.
 
 stages:
-- stage: Build
+- stage: Deploy
   jobs:
-  - job: Build
-    displayName: 'Build and Publish'
+  - job: DeployWebApp
     steps:
     - task: UseDotNet@2
       inputs:
-        packageType: 'sdk'
+        packageType: 'dotnet'
         version: '6.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
-    - script: dotnet restore
-      displayName: 'Restore dependencies'
-    - script: dotnet build --configuration $(buildConfiguration)
-      displayName: 'Build'
-    - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact: drop'
+        installationPathUser: false
+
+    - script: dotnet build --configuration $(BuildConfiguration)
+      displayName: 'Build the ASP.NET MVC application'
+
+    - script: dotnet publish --configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)/app
+      displayName: 'Publish the ASP.NET MVC application'
+
+    - task: ArchiveFiles@2
       inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
+        rootFolderOrFile: $(Build.ArtifactStagingDirectory)/app
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        replaceExistingArchive: true
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        artifact: 'drop'
+
+    - task: AzureWebApp@1
+      inputs:
+        azureSubscription: $(azureSubscription)
+        appType: 'webApp'
+        appName: $(appName)
+        package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+        deploymentMethod: 'auto'
+
+
+
+
+# trigger:
+# - master  # Define the branch to trigger the pipeline (e.g., 'main' or 'master')
+
+# pool:
+#   vmImage: 'windows-latest'  # Use a Windows agent for .NET Core applications
+
+# variables:
+#   azureSubscription: 'Visual Studio Enterprise(590d4409-008a-4d94-be3b-7ff931a8ef98)'
+#   webAppName: 'webapp56app'
+#   buildConfiguration: 'Release'
+
+# stages:
+# - stage: Build
+#   jobs:
+#   - job: Build
+#     displayName: 'Build and Publish'
+#     steps:
+#     - task: UseDotNet@2
+#       inputs:
+#         packageType: 'sdk'
+#         version: '6.x'
+#         installationPath: $(Agent.ToolsDirectory)/dotnet
+#     - script: dotnet restore
+#       displayName: 'Restore dependencies'
+#     - script: dotnet build --configuration $(buildConfiguration)
+#       displayName: 'Build'
+#     - task: PublishBuildArtifacts@1
+#       displayName: 'Publish Artifact: drop'
+#       inputs:
+#         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+#         ArtifactName: 'drop'
 
 # - stage: Deploy
 #   jobs:
