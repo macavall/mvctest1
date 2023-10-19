@@ -47,7 +47,7 @@ stages:
         azureSubscription: $(azureSubscription)
         appType: 'webApp'
         appName: $(appName)
-        package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+        package: $(Pipeline.Workspace)/$(Build.BuildId).zip
         deploymentMethod: 'auto'
 
 
