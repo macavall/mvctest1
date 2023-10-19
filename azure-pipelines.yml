@@ -59,6 +59,7 @@ stages:
         packageForLinux: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
         enableCustomDeployment: true
         DeploymentType: 'zipDeploy'
+        AppSettings: '-buildNumber $(Build.BuildNumber) -WEBSITE_RUN_FROM_PACKAGE "0" -ASPNETCORE_ENVIRONMENT "PREPROD"'
 
 
 
