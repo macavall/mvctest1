@@ -18,10 +18,10 @@ stages:
     steps:
     - task: UseDotNet@2
       inputs:
-        packageType: 'dotnet'
+        packageType: 'sdk'
         version: '6.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
-        installationPathUser: false
+        #installationPathUser: false
 
     - script: dotnet build --configuration $(BuildConfiguration)
       displayName: 'Build the ASP.NET MVC application'
