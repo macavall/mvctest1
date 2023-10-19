@@ -10,6 +10,7 @@ variables:
   # Define your Azure subscription and App Service name as variables.
   azureSubscription: 'Visual Studio Enterprise(590d4409-008a-4d94-be3b-7ff931a8ef98)'  # Set this to your Azure subscription name or service connection.
   appName: 'webapp56app'  # Set this to the name of your Azure Web App.
+  buildConfiguration: 'Release'
 
 stages:
 - stage: Deploy
@@ -23,10 +24,10 @@ stages:
         installationPath: $(Agent.ToolsDirectory)/dotnet
         #installationPathUser: false
 
-    - script: dotnet build --configuration $(BuildConfiguration)
+    - script: dotnet build --configuration $(buildConfiguration)
       displayName: 'Build the ASP.NET MVC application'
 
-    - script: dotnet publish --configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)/app
+    - script: dotnet publish --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/app
       displayName: 'Publish the ASP.NET MVC application'
 
     - task: ArchiveFiles@2
